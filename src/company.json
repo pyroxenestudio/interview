@@ -1,0 +1,14 @@
+{
+  "indra": {
+    "name": "indra",
+    "description": "blabalbla",
+    "web": "",
+    "email": ""
+  },
+  "otro": {
+    "name": "patata",
+    "description": "patata description",
+    "web": "",
+    "email": ""
+  }
+}
