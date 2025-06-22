@@ -1,56 +1,31 @@
-import { useEffect } from 'react';
-// import { db } from './../db';
-// import companies from '../company.json';
-// import { useSelector } from 'react-redux';
-// import { useJobOfferModel } from '../modelsHooks/useJobOfferModel';
-import { useSelector } from 'react-redux';
-import { selectAllJobs, selectJobsByCompany, useGetAllQuery, useAddJobOfferMutation, useAddInterviewMutation } from '../api/generalApi';
+import { useGetAllQuery } from '../api/generalApi';
+import { Suspense, useDeferredValue } from 'react';
+import useFilter from '../hooks/useFilter';
+import JobOfferPreview from '../components/JobOfferPreview';
+import Filters from '../components/Filters';
 
 export default function Home () {
-  // const dispatch = useDispatch();
-  const {data, error, isLoading} = useGetAllQuery();
-  const indra = useSelector(selectJobsByCompany('PATATA'));
-  const allJobsSelector = useSelector(selectAllJobs);
-  const [addJobOffer, result] = useAddJobOfferMutation();
-  const [addInterview ,resultInterview] = useAddInterviewMutation();
-  console.log('SELECTOR DE LA API PATATA', indra);
-  console.log('allJobsSelector', allJobsSelector);
-  console.log('data', data, 'error', error, 'isLoading', isLoading);
-  console.log('RESULT MUTATION', result);
-  console.log('RESULT MUTATION INTERVIEW', resultInterview);
+  const {data: jobOffers, error, isLoading} = useGetAllQuery();
+  const {data: filteredJobOffers, changeFilter, changeSortBy} = useFilter(jobOffers);
+  const deferredFilteredJobOffer = useDeferredValue(filteredJobOffers);
 
-  const addNewOffer = function() {
-    const newOffer = {
-      position: 'FullStack',
-      note: 'La nota',
-      company: 'HOLAAAAA',
-      createdDate: new Date(),
-      canceled: false
-    };
-    addJobOffer(newOffer);
-  }
+  console.log('Filtered', filteredJobOffers);
 
-  const newInterview = function() {
-    const newInterview = {
-      createdDate: new Date(),
-      canceled: false,
-      company: 'indra',
-      meetingDate: new Date(),
-      meetingLink: 'www.google.es',
-      location: 'Location',
-      jobOffer: 1
-    }
-    addInterview(newInterview);
+  // RENDER
+  let list: React.ReactNode[] = [];
+  if (deferredFilteredJobOffer?.length) {
+    list = deferredFilteredJobOffer.map((offer) => {
+      return <JobOfferPreview company={offer.job.company} createdDate={offer.job.createdDate} interviews={offer.interviews.length - 1} nextMeeting={new Date()} location={'Este es el location'} link={'Este es el link'} id={offer.job.id}/>
+    });
   }
 
   return (
     <>
-      <button onClick={addNewOffer}>
-        Add offer
-      </button>
-      <button onClick={newInterview}>
-        Add Interview
-      </button>
+      <Suspense fallback={<>Loading Jobs</>}>
+        <Filters changeFilter={changeFilter} changeSortBy={changeSortBy}/>
+        {list}
+      </Suspense>
     </>
   )
 }
+

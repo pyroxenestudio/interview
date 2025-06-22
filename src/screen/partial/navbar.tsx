@@ -1,10 +1,13 @@
 import {PyxNavbar} from 'pyx';
+import { useState } from 'react';
+import { NavLink } from 'react-router';
 
 function NavBarPartialScreen () {
+  const [open, setOpen] = useState(false);
   return (
-    <PyxNavbar logo='LOGO' links={[
-      <a href='#'>Jobs</a>,
-      <a href='#'>Interviews</a>
+    <PyxNavbar open={open} toggle={setOpen} logo='LOGO' links={[
+      <NavLink to='/' onClick={() => {setOpen(false)}}>Jobs</NavLink>,
+      <NavLink to='/interviews' onClick={() => {setOpen(false)}}>Interviews</NavLink>
     ]} />
   )
 }

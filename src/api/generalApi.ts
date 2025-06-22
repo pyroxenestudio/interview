@@ -32,13 +32,12 @@ export const generalApi = createApi({
     getAll: build.query<JobsInterviewsContacts[], void>({
       query: () => '',
       transformResponse: async (_data, meta) => {
+        console.log('useGetAllQuery TRANSFORMANDO');
         if (meta.offline) {
           return await Promise.all([findJobOffers(), findInterviews(), findContacts(), findJoinContracts()]).then((results) => {
             if (results) {
               const [jobs, interviews, contacts, jobsAndContact] = results;
               return jobs.map((job) => {
-                console.log('filter interview');
-                console.log(interviews.filter((interview) => interview.jobOffer == job.id));
                 // Table N:M for contacts and jobOffers
                 const contactsID = jobsAndContact.filter(jc => jc.idJobOffer == job.id);
                 return {
@@ -128,7 +127,6 @@ export const selectJobsByCompany = (company: string) => {
   const selector = createSelector(
     [selectAllJobs],
     (all) => {
-      console.log('INSIDE OF SELECT', all);
       if (all?.data) {
         return all.data.filter((result: JobsInterviewsContacts) => result.job.company == company);
       } else {

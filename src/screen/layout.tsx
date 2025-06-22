@@ -6,7 +6,7 @@ function Layout () {
   return (
     <>
     <Navbar />
-      <section className="content flex-auto flex flex-col relative">
+      <section className="flex-auto flex flex-col relative m-2">
         <Outlet />
       </section>
     <Footer />
