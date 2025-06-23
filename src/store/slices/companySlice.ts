@@ -19,12 +19,12 @@ export interface JobsInterviewsContacts {
 }
 
 export interface JobsInformationState {
-  companies: CompanyJson[];
+  companies: {[key: string]: CompanyJson};
   jobs: JobsInterviewsContacts[];
 }
 
 const initialState: JobsInformationState = {
-  companies: Object.values(companyJson),
+  companies: companyJson,
   jobs: []
 }
 
@@ -47,23 +47,23 @@ export const JobsInformationSlice = createSlice({
         }
       });
     },
-    addOffer: (state, action: PayloadAction<JobOffer>) => {
-      state.jobs.push({
-        job: action.payload,
-        interviews: [],
-        contacts: []
-      });
-      state.jobs.sort((a, b) => a.job.createdDate > b.job.createdDate ? -1 : 1);
-    },
-    addInterview: (state, action: PayloadAction<Interview>) => {
-      const jobOffer = state.jobs.find((jobOffer) => {
-        return jobOffer.job.id == action.payload.jobOffer;
-      });
-      if (jobOffer) {
-        jobOffer.interviews.push(action.payload);
-        jobOffer.interviews.sort((a, b) => a.createdDate > b.createdDate ? -1 : 1);
-      }
-    },
+    // addOffer: (state, action: PayloadAction<JobOffer>) => {
+    //   state.jobs.push({
+    //     job: action.payload,
+    //     interviews: [],
+    //     contacts: []
+    //   });
+    //   state.jobs.sort((a, b) => a.job.createdDate > b.job.createdDate ? -1 : 1);
+    // },
+    // addInterview: (state, action: PayloadAction<Interview>) => {
+    //   const jobOffer = state.jobs.find((jobOffer) => {
+    //     return jobOffer.job.id == action.payload.jobOffer;
+    //   });
+    //   if (jobOffer) {
+    //     jobOffer.interviews.push(action.payload);
+    //     jobOffer.interviews.sort((a, b) => a.createdDate > b.createdDate ? -1 : 1);
+    //   }
+    // },
     // addContact: (state, action: PayloadAction<Contact>) => {
 
     // }
@@ -72,6 +72,8 @@ export const JobsInformationSlice = createSlice({
 
 // Selectors
 export const selectJobsInformationStore = (state: RootState) => state.JobsInformation;
+
+export const selectCompanies = (state: RootState) => state.JobsInformation.companies;
 
 // export const selectJobsInformationByName = (companyName: string) => {
 //   return (state: RootState) => {
@@ -83,6 +85,6 @@ export const selectJobsInformationStore = (state: RootState) => state.JobsInform
 // }
 
 // Action creators are generated for each case reducer function
-export const { fillJobs, addOffer, addInterview } = JobsInformationSlice.actions
+export const { fillJobs } = JobsInformationSlice.actions
 
 export default JobsInformationSlice.reducer

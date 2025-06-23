@@ -5,7 +5,7 @@ import JobOfferPreview from '../components/JobOfferPreview';
 import Filters from '../components/Filters';
 
 export default function Home () {
-  const {data: jobOffers, error, isLoading} = useGetAllQuery();
+  const {data: jobOffers} = useGetAllQuery();
   const {data: filteredJobOffers, changeFilter, changeSortBy} = useFilter(jobOffers);
   const deferredFilteredJobOffer = useDeferredValue(filteredJobOffers);
 

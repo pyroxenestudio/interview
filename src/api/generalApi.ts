@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { findJobOffers, findInterviews, findContacts, findJoinContracts, type JobOffer, addJobOffer as addJobOfferDB, addInterview as addInterviewDB, type Interview} from '../db';
+import { findJobOffers, findInterviews, findContacts, findJoinContracts, type JobOffer, addJobOffer as addJobOfferDB, addInterview as addInterviewDB, type Interview, updateJobOffer} from '../db';
 import { createSelector } from '@reduxjs/toolkit';
 import type { JobsInterviewsContacts } from '../store/slices/companySlice';
 
@@ -84,6 +84,36 @@ export const generalApi = createApi({
         }
       }
     }),
+    updateJobOffer: build.mutation<JobOffer | undefined, JobOffer>({
+      query: (body) => body,
+      transformResponse: async (_data, meta) => {
+        if (meta.offline) {
+          const job = meta.body as JobOffer;
+          return await updateJobOffer(job).then(() => {
+            return job;
+          });
+        }
+        return;
+      },
+      // _args is the args in the query, in this case is body 
+      onQueryStarted: async (_args, {dispatch, queryFulfilled }) => {
+        try {
+          const {data: job } = await queryFulfilled;
+          dispatch(generalApi.util.updateQueryData('getAll', undefined, (draft) => {
+            if (job) {
+              draft.push({
+                job,
+                interviews: [],
+                contacts: []
+              });
+            }
+            return draft.sort((a, b) => a.job.createdDate > b.job.createdDate ? -1 : 1);
+          }))
+        } catch {
+          console.log('Error');
+        }
+      }
+    }),
     // build.mutation<final response (what is going to be saved in cache), argsType (in this case the body)>
     addInterview: build.mutation<Interview | undefined, Omit<Interview, 'id'>>({
       query: (body) => body,
@@ -137,4 +167,35 @@ export const selectJobsByCompany = (company: string) => {
   return selector;
 }
 
-export const { useGetAllQuery, useAddJobOfferMutation, useAddInterviewMutation } = generalApi
+export function selectJobById(id: string | number | undefined) {
+  const selector = createSelector(
+    [selectAllJobs],
+    (all) => {
+      console.log('BUSCANDO', id);
+      if (all.data && id) {
+        if (typeof id === 'string') id = parseInt(id);
+        let pivot = Math.floor(all.data.length/2);
+        // It is already sorted first is newer and last one is older
+        let tempJobOffers = all.data.slice();
+        while(pivot > -1) {
+          if (tempJobOffers[pivot].job.id == id) {
+            const found = tempJobOffers[pivot];
+            return found;
+          } else if (pivot == 0) {
+            return;
+          }
+
+          if (id > tempJobOffers[pivot].job.id) {
+            tempJobOffers = tempJobOffers.slice(0, pivot);
+          } else {
+            tempJobOffers = tempJobOffers.slice(pivot);
+          }
+          pivot = Math.floor(tempJobOffers.length/2);
+        }
+      }
+    }
+  )
+  return selector;
+}
+
+export const { useGetAllQuery, useAddJobOfferMutation, useAddInterviewMutation, useUpdateJobOfferMutation } = generalApi

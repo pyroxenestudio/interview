@@ -11,9 +11,9 @@ interface JobOffer {
 
 interface Interview {
   id: number;
-  meetingDate: Date;
-  meetingLink: string;
-  location: string;
+  meetingDate?: Date;
+  meetingLink?: string;
+  location?: string;
   createdDate: Date;
   canceled: boolean;
   company: string; // ForeignKey
@@ -85,6 +85,19 @@ export async function addContact(contact: Omit<Contact, 'id'>, jobOfferId: numbe
     idJobOffer: jobOfferId,
     idContact: id
   });
+}
+
+// UPDATE
+export async function updateJobOffer(job: JobOffer) {
+  return db.JobOffer.put({...job});
+}
+
+export async function updateInterview(interview: Interview) {
+  return db.Interview.put({...interview});
+}
+
+export async function updateContact(contact: Contact) {
+  return db.Contact.put({...contact});
 }
 
 export type { JobOffer, Interview, Contact, JobOfferContact };
