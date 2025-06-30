@@ -1,14 +1,20 @@
 {
   "indra": {
-    "name": "indra",
-    "description": "blabalbla",
-    "web": "",
+    "name": "Indra",
+    "description": "Indra Sistemas, S.A. is a Spanish information technology and defense company. Indra is listed on the Bolsa de Madrid and is a constituent of the IBEX 35 index. The current executive chairman is Ángel Escribano.",
+    "web": "https://www.indracompany.com/en/",
     "email": ""
   },
-  "otro": {
-    "name": "patata",
-    "description": "patata description",
-    "web": "",
+  "santander": {
+    "name": "Banco Santander",
+    "description": "Banco Santander S.A. trading as Santander Group, is a Spanish multinational financial services company based in Santander, with operative offices in Madrid. Additionally, Santander maintains a presence in most global financial centres as the 14th-largest banking institution in the world.",
+    "web": "https://www.bancosantander.es",
+    "email": ""
+  },
+  "viewnext": {
+    "name": "View Next",
+    "description": "Informacion de ViewNext",
+    "web": "https://www.viewnext.com/s",
     "email": ""
   }
 }

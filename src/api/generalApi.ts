@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { findJobOffers, findInterviews, findContacts, findJoinContracts, type JobOffer, addJobOffer as addJobOfferDB, addInterview as addInterviewDB, type Interview, updateJobOffer} from '../db';
+import { findJobOffers, findInterviews, findContacts, findJoinContracts, type JobOffer, addJobOffer as addJobOfferDB, addInterview as addInterviewDB, type Interview, updateJobOffer, type Contact, updateInterview as updateInterviewDB} from '../db';
 import { createSelector } from '@reduxjs/toolkit';
 import type { JobsInterviewsContacts } from '../store/slices/companySlice';
 
@@ -101,11 +101,13 @@ export const generalApi = createApi({
           const {data: job } = await queryFulfilled;
           dispatch(generalApi.util.updateQueryData('getAll', undefined, (draft) => {
             if (job) {
-              draft.push({
-                job,
-                interviews: [],
-                contacts: []
+              // Find where is in the array
+              const found = draft.find((offer) => {
+                return offer.job.id == job.id;
               });
+              if (found) {
+                found.job = job;
+              }
             }
             return draft.sort((a, b) => a.job.createdDate > b.job.createdDate ? -1 : 1);
           }))
@@ -146,7 +148,82 @@ export const generalApi = createApi({
           console.log('Error');
         }
       }
-    })
+    }),
+    // build.mutation<final response (what is going to be saved in cache), argsType (in this case the body)>
+    updateInterview: build.mutation<Interview | undefined, Omit<Interview, 'id'>>({
+      query: (body) => body,
+      transformResponse: async (_data, meta) => {
+        if (meta.offline) {
+          const interview = meta.body as Interview;
+          return await updateInterviewDB(interview).then(() => {
+            return interview
+          });
+        }
+        return;
+      },
+      // _args is the args in the query, in this case is body 
+      onQueryStarted: async (_args, {dispatch, queryFulfilled }) => {
+        try {
+          const {data: interview } = await queryFulfilled;
+          if (interview) {
+            dispatch(generalApi.util.updateQueryData('getAll', undefined, (draft) => {
+              const jobOffer = draft.find((jobOffer) => {
+                return jobOffer.job.id == interview.jobOffer;
+              });
+              if (jobOffer) {
+                let interviewIndex: number | undefined = undefined;
+                jobOffer.interviews.forEach((draftInterview, index) => {
+                  if (draftInterview.id == interview.id) {
+                    interviewIndex = index;
+                  }
+                });
+                if (interviewIndex) {
+                  jobOffer.interviews[interviewIndex] = interview;
+                  jobOffer.interviews.sort((a, b) => a.createdDate > b.createdDate ? -1 : 1);
+                }
+              }
+              return draft;
+            }));
+          }
+        } catch {
+          console.log('Error');
+        }
+      }
+    }),
+    // build.mutation<final response (what is going to be saved in cache), argsType (in this case the body)>
+    // TODO
+    addContact: build.mutation<Interview | undefined, Omit<Interview, 'id'>>({
+      query: (body) => body,
+      transformResponse: async (_data, meta) => {
+        if (meta.offline) {
+          const interview = meta.body as Omit<Interview, 'id'>;
+          return await addInterviewDB(interview).then((id) => {
+            return {id, ...interview}
+          });
+        }
+        return;
+      },
+      // _args is the args in the query, in this case is body 
+      onQueryStarted: async (_args, {dispatch, queryFulfilled }) => {
+        try {
+          const {data: interview } = await queryFulfilled;
+          if (interview) {
+            dispatch(generalApi.util.updateQueryData('getAll', undefined, (draft) => {
+              const jobOffer = draft.find((jobOffer) => {
+                return jobOffer.job.id == interview.jobOffer;
+              });
+              if (jobOffer) {
+                jobOffer.interviews.push(interview);
+                jobOffer.interviews.sort((a, b) => a.createdDate > b.createdDate ? -1 : 1);
+              }
+              return draft;
+            }));
+          }
+        } catch {
+          console.log('Error');
+        }
+      }
+    }),
   }),
 });
 
@@ -198,4 +275,41 @@ export function selectJobById(id: string | number | undefined) {
   return selector;
 }
 
-export const { useGetAllQuery, useAddJobOfferMutation, useAddInterviewMutation, useUpdateJobOfferMutation } = generalApi
+export function selectContactById(id: string | number | undefined) {
+  return createSelector(
+    [selectAllJobs],
+    (all) => {
+      console.log('Contact', 'id:', id);
+      let found: Contact | undefined;
+      if (all.data && id) {
+        all.data.map((offer) => {
+          offer.contacts.map((contact) => {
+            if (contact.id == id) {
+               found = contact;
+            }
+          });
+        });
+      }
+      return found;
+    }
+  )
+}
+
+export function selectInterviewById(id: string | number | undefined) {
+  return createSelector(
+    [selectAllJobs],
+    (all) => {
+      let found: Interview | undefined;
+      if (all.data && id) {
+        all.data.forEach((offer) => {
+          offer.interviews.forEach((interview) => {
+            if (interview.id == id) found = interview;
+          });
+        })
+      }
+      return found;
+    }
+  );
+}
+
+export const { useGetAllQuery, useAddJobOfferMutation, useAddInterviewMutation, useUpdateJobOfferMutation, useUpdateInterviewMutation } = generalApi

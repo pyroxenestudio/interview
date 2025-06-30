@@ -10,40 +10,39 @@ export default function AddOrEditJobOffer() {
   const companies = useSelector(selectCompanies);
   const jobOffer = useSelector(selectJobById(id));
   // Api
-  const [addNewOffer, resultsAdd] = useAddJobOfferMutation();
-  const [editNewOffer, resultsUpdate] = useUpdateJobOfferMutation();
+  const [addNewOffer,] = useAddJobOfferMutation();
+  const [editNewOffer,] = useUpdateJobOfferMutation();
 
-  function addNewOfferActionForm(formData) {
+  function addNewOfferActionForm(formData: FormData) {
     if (jobOffer) {
       editNewOffer({
         id: jobOffer.job.id,
-        company: formData.get('company'),
-        position: formData.get('position'),
-        note: formData.get('note'),
+        company: formData.get('company') as string,
+        position: formData.get('position') as string,
+        note: formData.get('note') as string,
         canceled: false,
         createdDate: jobOffer.job.createdDate
       });
     } else {
       addNewOffer({
-        company: formData.get('company'),
-        position: formData.get('position'),
-        note: formData.get('note'),
+        company: formData.get('company') as string,
+        position: formData.get('position') as string,
+        note: formData.get('note') as string,
         canceled: false,
         createdDate: new Date()
       })
     }
   }
 
-  const companyOptions = Object.values(companies).map((values) => {
-    return <option key={values.name}>{values.name}</option>
+  const keys = Object.keys(companies);
+  // Use key as ForeignKey
+  const companyOptions = Object.values(companies).map((company, index) => {
+    return <option key={keys[index]} value={keys[index]}>{company.name}</option>
   });
-
-  console.log('resultado Add', resultsAdd);
-  console.log('resultado Update', resultsUpdate);
 
   return (
     <>
-      <h2>Add New Offer</h2>
+      <h2>Offer Form</h2>
       <form action={addNewOfferActionForm}>
         <label htmlFor="position">
           Position

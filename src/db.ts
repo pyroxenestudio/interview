@@ -16,7 +16,7 @@ interface Interview {
   location?: string;
   createdDate: Date;
   canceled: boolean;
-  company: string; // ForeignKey
+  company: string; // ForeignKey (the key in the json)
   jobOffer: number; // ForeignKey
 }
 
@@ -25,6 +25,7 @@ interface Contact {
   name: string;
   phone: string;
   email: string;
+  createdDate: Date;
   company: string; // ForeignKey
 }
 
@@ -62,7 +63,9 @@ export async function findInterviews() {
 }
 
 export async function findContacts() {
-  return db.Contact.toArray();
+  return db.Contact.toArray().then((results) => {
+    return results.sort((a,b) => a.createdDate > b.createdDate ? -1 : 1);
+  });
 }
 
 export async function findJoinContracts() {
